@@ -16,14 +16,14 @@ final List<Hospital> hospitals = [
   Hospital(
     name: "Hospital 1",
     specialty: "General Medicine",
-    image: "hos1.jpg",
+    image: "lib/assests/images/aiims.jpg",
     keywords: ["General", "Surgery"],
   ),
   Hospital(
     name: "Hospital 2",
-    specialty: "Heart",
-    image: "hospital2.jpg",
-    keywords: ["Heart", "Surgery"],
+    specialty: "Cardiology",
+    image: "lib/assests/images/apollo.jpg",
+    keywords: ["Cardiology", "Surgery"],
   ),
   // Add more hospital data here
 ];

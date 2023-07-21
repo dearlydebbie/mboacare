@@ -68,6 +68,12 @@ flutter:
   assets:
     - lib/assests/images/logo.png
     - lib/assests/images/google-icon.png
+    - lib/assests/images/aiims.jpg
+    - lib/assests/images/apollo.jpg
+    - lib/assests/images/CMC.jpg
+    - lib/assests/images/Max.jpg
+    - lib/assests/images/medanta.jpg
+    - lib/assests/images/PGIMR.jpg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

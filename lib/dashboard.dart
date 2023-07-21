@@ -29,6 +29,7 @@ class _DashboardState extends State<Dashboard> {
       body: Container(
         constraints: BoxConstraints(maxWidth: 600),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: EdgeInsets.all(16.0),
@@ -64,10 +65,9 @@ class _DashboardState extends State<Dashboard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildFilterText("View All"),
                   _buildFilterText("General Medicine"),
                   _buildFilterText("Surgery"),
-                  _buildFilterText("Heart"),
+                  _buildFilterText("Cardiology"),
                   _buildFilterText("Brain"),
                 ],
               ),
@@ -88,7 +88,7 @@ class _DashboardState extends State<Dashboard> {
                     "View All",
                     "General Medicine",
                     "Surgery",
-                    "Heart",
+                    "Cardiology",
                     "Brain",
                   ].map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
@@ -101,8 +101,69 @@ class _DashboardState extends State<Dashboard> {
             ),
             Expanded(
               child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: _buildHospitalList(filteredHospitals)),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ListView.builder(
+                  itemCount: filteredHospitals.length,
+                  itemBuilder: (context, index) {
+                    Hospital hospital = filteredHospitals[index];
+                    return GestureDetector(
+                      onTap: () {
+                        _navigateToDetailsPage(hospital);
+                      },
+                      child: Container(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        padding: EdgeInsets.all(16.0),
+                        height: 240,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16.0),
+                          color: Colors.grey,
+                          image: DecorationImage(
+                            image: AssetImage(hospital.image),
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              hospital.name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              hospital.specialty,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    _buildFeatureBox("General Medicine"),
+                                    SizedBox(width: 8),
+                                    _buildFeatureBox("Cardiology"),
+                                  ],
+                                ),
+                                Icon(Icons.arrow_forward, color: Colors.white),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -131,23 +192,20 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  Widget _buildHospitalList(List<Hospital> hospitals) {
-    return ListView.builder(
-      itemCount: hospitals.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          leading: Image.asset(
-            hospitals[index].image,
-            width: 80,
-            height: 80,
-          ),
-          title: Text(hospitals[index].name),
-          subtitle: Text(hospitals[index].specialty),
-          onTap: () {
-            _navigateToDetailsPage(hospitals[index]);
-          },
-        );
-      },
+  Widget _buildFeatureBox(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.lightGreen),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Colors.lightGreen,
+        ),
+      ),
     );
   }
 
