@@ -12,22 +12,16 @@ class _DashboardState extends State<Dashboard> {
   String _searchQuery = "";
   String _selectedFilter = "View All";
 
-  // Function to filter hospitals based on their names
-  List<Hospital> _searchHospitalsByName(String query) {
-    return hospitals
+  @override
+  Widget build(BuildContext context) {
+    List<Hospital> filteredHospitals = hospitals
         .where((hospital) =>
             _selectedFilter == "View All" ||
             hospital.specialty == _selectedFilter)
         .where((hospital) =>
-            query.isEmpty ||
-            hospital.name.toLowerCase().contains(query.toLowerCase()))
+            _searchQuery.isEmpty ||
+            hospital.keywords.any((keyword) => keyword.contains(_searchQuery)))
         .toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Filter the hospitals based on search query
-    List<Hospital> filteredHospitals = _searchHospitalsByName(_searchQuery);
 
     return Scaffold(
       appBar: AppBar(
@@ -72,7 +66,6 @@ class _DashboardState extends State<Dashboard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildFilterText("View All"),
                   _buildFilterText("General Medicine"),
                   _buildFilterText("Surgery"),
                   _buildFilterText("Cardiology"),
@@ -142,22 +135,37 @@ class _DashboardState extends State<Dashboard> {
                                   ),
                                 ),
                               ),
+                              SizedBox(height: 12),
+                              // Hospital Name with arrow button
+                              Container(
+                                height: 30,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0),
+                                        child: Text(
+                                          hospital.name,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: AppColors.primaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    _buildArrowButton(),
+                                  ],
+                                ),
+                              ),
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(6.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Hospital Name with more spacing below the image
-                                    SizedBox(height: 12),
-                                    Text(
-                                      hospital.name,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: AppColors.primaryColor,
-                                      ),
-                                    ),
-                                    SizedBox(height: 12),
                                     // Specialty
                                     Text(
                                       hospital.specialty,
@@ -175,13 +183,16 @@ class _DashboardState extends State<Dashboard> {
                                         Row(
                                           children: [
                                             _buildFeatureBox(
-                                                "General Medicine"),
+                                              "General Medicine",
+                                              Colors.blue.withOpacity(0.03),
+                                            ),
                                             SizedBox(width: 8),
-                                            _buildFeatureBox("Cardiology"),
+                                            _buildFeatureBox(
+                                              "Cardiology",
+                                              Colors.red.withOpacity(0.03),
+                                            ),
                                           ],
                                         ),
-                                        Icon(Icons.arrow_forward,
-                                            color: Colors.white),
                                       ],
                                     ),
                                   ],
@@ -223,18 +234,46 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  Widget _buildFeatureBox(String text) {
+  Widget _buildFeatureBox(String text, Color color) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.lightGreen),
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.buttonColor),
       ),
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.lightGreen,
+          color: AppColors.buttonColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArrowButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          // Handle arrow button tap here
+        },
+        splashColor: Colors.green.withOpacity(0.5),
+        highlightColor: Colors.transparent,
+        child: Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.buttonColor,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Icon(
+              Icons.arrow_forward,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
         ),
       ),
     );
