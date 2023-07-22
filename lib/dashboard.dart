@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'hospital.dart';
 import 'hospitaldetails.dart';
+import 'colors.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -11,16 +12,22 @@ class _DashboardState extends State<Dashboard> {
   String _searchQuery = "";
   String _selectedFilter = "View All";
 
-  @override
-  Widget build(BuildContext context) {
-    List<Hospital> filteredHospitals = hospitals
+  // Function to filter hospitals based on their names
+  List<Hospital> _searchHospitalsByName(String query) {
+    return hospitals
         .where((hospital) =>
             _selectedFilter == "View All" ||
             hospital.specialty == _selectedFilter)
         .where((hospital) =>
-            _searchQuery.isEmpty ||
-            hospital.keywords.any((keyword) => keyword.contains(_searchQuery)))
+            query.isEmpty ||
+            hospital.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Filter the hospitals based on search query
+    List<Hospital> filteredHospitals = _searchHospitalsByName(_searchQuery);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,6 +72,7 @@ class _DashboardState extends State<Dashboard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  _buildFilterText("View All"),
                   _buildFilterText("General Medicine"),
                   _buildFilterText("Surgery"),
                   _buildFilterText("Cardiology"),
@@ -106,58 +114,81 @@ class _DashboardState extends State<Dashboard> {
                   itemCount: filteredHospitals.length,
                   itemBuilder: (context, index) {
                     Hospital hospital = filteredHospitals[index];
-                    return GestureDetector(
-                      onTap: () {
-                        _navigateToDetailsPage(hospital);
-                      },
-                      child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 8),
-                        padding: EdgeInsets.all(16.0),
-                        height: 240,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16.0),
-                          color: Colors.grey,
-                          image: DecorationImage(
-                            image: AssetImage(hospital.image),
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          _navigateToDetailsPage(hospital);
+                        },
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.0),
                           ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              hospital.name,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.white,
+                          color: Colors.white,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Hospital Image
+                              Container(
+                                height: 140,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(16.0),
+                                    topRight: Radius.circular(16.0),
+                                  ),
+                                  image: DecorationImage(
+                                    image: AssetImage(hospital.image),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              hospital.specialty,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _buildFeatureBox("General Medicine"),
-                                    SizedBox(width: 8),
-                                    _buildFeatureBox("Cardiology"),
+                                    // Hospital Name with more spacing below the image
+                                    SizedBox(height: 12),
+                                    Text(
+                                      hospital.name,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: AppColors.primaryColor,
+                                      ),
+                                    ),
+                                    SizedBox(height: 12),
+                                    // Specialty
+                                    Text(
+                                      hospital.specialty,
+                                      style: TextStyle(
+                                        color: AppColors.primaryColor,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    // Feature Boxes
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            _buildFeatureBox(
+                                                "General Medicine"),
+                                            SizedBox(width: 8),
+                                            _buildFeatureBox("Cardiology"),
+                                          ],
+                                        ),
+                                        Icon(Icons.arrow_forward,
+                                            color: Colors.white),
+                                      ],
+                                    ),
                                   ],
                                 ),
-                                Icon(Icons.arrow_forward, color: Colors.white),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
