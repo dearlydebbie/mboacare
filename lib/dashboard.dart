@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'hospital.dart';
 import 'hospitaldetails.dart';
+import 'signUpPage.dart';
 import 'colors.dart';
 
 class Dashboard extends StatefulWidget {
+  final String? userName; // New parameter to accept the user's name
+
+  Dashboard({this.userName}); // Updated constructor
+
   @override
   _DashboardState createState() => _DashboardState();
 }
@@ -12,17 +17,34 @@ class _DashboardState extends State<Dashboard> {
   String _searchQuery = "";
   String _selectedFilter = "View All";
 
+  List<Hospital> filteredHospitals = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize filteredHospitals with all hospitals when the widget is first built
+    filteredHospitals = hospitals;
+  }
+
+  void _filterHospitals() {
+    setState(() {
+      filteredHospitals = hospitals
+          .where((hospital) =>
+              _selectedFilter == "View All" ||
+              hospital.specialty == _selectedFilter)
+          .where((hospital) =>
+              _searchQuery.isEmpty ||
+              hospital.name
+                  .toLowerCase()
+                  .contains(_searchQuery.toLowerCase()) ||
+              hospital.keywords.any(
+                  (keyword) => keyword.contains(_searchQuery.toLowerCase())))
+          .toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<Hospital> filteredHospitals = hospitals
-        .where((hospital) =>
-            _selectedFilter == "View All" ||
-            hospital.specialty == _selectedFilter)
-        .where((hospital) =>
-            _searchQuery.isEmpty ||
-            hospital.keywords.any((keyword) => keyword.contains(_searchQuery)))
-        .toList();
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Hospital Dashboard'),
@@ -50,6 +72,7 @@ class _DashboardState extends State<Dashboard> {
                           setState(() {
                             _searchQuery = value;
                           });
+                          _filterHospitals();
                         },
                         decoration: InputDecoration(
                           hintText: "Search hospitals...",
@@ -66,6 +89,7 @@ class _DashboardState extends State<Dashboard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  _buildFilterText("View All"),
                   _buildFilterText("General Medicine"),
                   _buildFilterText("Surgery"),
                   _buildFilterText("Cardiology"),
@@ -77,11 +101,25 @@ class _DashboardState extends State<Dashboard> {
               padding: const EdgeInsets.all(16.0),
               child: Align(
                 alignment: Alignment.centerLeft,
+                child: Text(
+                  'Hi, ${widget.userName ?? 'Guest'}!',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
                 child: DropdownButton<String>(
                   value: _selectedFilter,
                   onChanged: (String? newValue) {
                     setState(() {
                       _selectedFilter = newValue!;
+                      _filterHospitals();
                     });
                   },
                   dropdownColor: Colors.white,
@@ -101,13 +139,12 @@ class _DashboardState extends State<Dashboard> {
               ),
             ),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ListView.builder(
-                  itemCount: filteredHospitals.length,
-                  itemBuilder: (context, index) {
-                    Hospital hospital = filteredHospitals[index];
-                    return Padding(
+              child: ListView.builder(
+                itemCount: filteredHospitals.length,
+                itemBuilder: (context, index) {
+                  Hospital hospital = filteredHospitals[index];
+                  return SingleChildScrollView(
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: GestureDetector(
                         onTap: () {
@@ -157,7 +194,7 @@ class _DashboardState extends State<Dashboard> {
                                         ),
                                       ),
                                     ),
-                                    _buildArrowButton(),
+                                    _buildArrowButton(hospital),
                                   ],
                                 ),
                               ),
@@ -202,9 +239,9 @@ class _DashboardState extends State<Dashboard> {
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -218,6 +255,7 @@ class _DashboardState extends State<Dashboard> {
       onTap: () {
         setState(() {
           _selectedFilter = filter;
+          _filterHospitals();
         });
       },
       child: Padding(
@@ -251,13 +289,13 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  Widget _buildArrowButton() {
+  Widget _buildArrowButton(Hospital hospital) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          // Handle arrow button tap here
+          _navigateToDetailsPage(hospital);
         },
         splashColor: Colors.green.withOpacity(0.5),
         highlightColor: Colors.transparent,

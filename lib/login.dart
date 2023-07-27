@@ -1,51 +1,58 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:mboacare/colors.dart';
-import 'package:mboacare/signUpPage.dart';
-import 'package:mboacare/dashboard.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'colors.dart';
+import 'dashboard.dart';
+import 'signUpPage.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key, required String title}) : super(key: key);
 
-  Future<void> googleLogin() async {
-    print("googleLogin method Called");
-    GoogleSignIn _googleSignIn = GoogleSignIn();
-    try {
-      var result = await _googleSignIn.signIn();
-      if (result == null) {
-        return;
-      }
-      print("Result $result");
-      print(result.displayName);
-      print(result.email);
-      print(result.photoUrl);
-    } catch (error) {
-      print(error);
-    }
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  String _email = '';
+  String _password = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSignInStatus();
   }
 
-  Future<void> signInWithEmail(BuildContext context) async {
+  Future<void> _signInWithEmail(BuildContext context) async {
     try {
-      // Perform user verification here
-      // For example, you can use Firebase Authentication to verify the user's email and password
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
+        email: _email,
+        password: _password,
+      );
+      final User? user = userCredential.user;
 
-      // Simulating a successful verification
-      bool isUserVerified = true;
-
-      if (isUserVerified) {
-        // Redirect to the main screen if the user is verified
+      if (user != null) {
+        _saveSignInStatus(
+            user.email); // Save sign-in status to SharedPreferences
+        // If the user is verified and successfully signed in, navigate to the dashboard
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Dashboard()));
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  Dashboard(userName: user.displayName ?? "")),
+        );
       }
     } catch (error) {
-      // Handle any potential errors during user verification
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Error'),
-            content: Text('An error occurred during user verification: $error'),
+            content: Text('An error occurred during sign in: $error'),
             actions: [
               TextButton(
                 child: Text('OK'),
@@ -60,15 +67,68 @@ class LoginScreen extends StatelessWidget {
     }
   }
 
-  Future<void> logout() async {
-    await GoogleSignIn().disconnect();
-    FirebaseAuth.instance.signOut();
+  Future<void> _signInWithGoogle(BuildContext context) async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        _saveSignInStatus(
+            user.email); // Save sign-in status to SharedPreferences
+        // If the user is successfully signed in with Google, navigate to the dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  Dashboard(userName: user.displayName ?? "")),
+        );
+      }
+    } catch (error) {
+      print(error);
+    }
+  }
+
+  // Method to save sign-in status to SharedPreferences
+  Future<void> _saveSignInStatus(String? email) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('isSignedIn', true);
+    prefs.setString(
+        'email', email ?? ""); // If email is null, set an empty string
+  }
+
+  Future<void> _checkSignInStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isSignedIn = prefs.getBool('isSignedIn') ?? false;
+
+    if (isSignedIn) {
+      String? email = prefs.getString('email');
+      // Navigate to the dashboard if the user is already signed in
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Dashboard(userName: email ?? ""),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Google Login')),
+      appBar: AppBar(title: Text('Login')),
       body: SingleChildScrollView(
         child: Container(
           alignment: Alignment.topCenter,
@@ -104,7 +164,7 @@ class LoginScreen extends StatelessWidget {
                 width: 320,
                 height: 40,
                 child: ElevatedButton(
-                  onPressed: () => signInWithEmail(context),
+                  onPressed: () => _signInWithEmail(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.buttonColor,
                     shape: RoundedRectangleBorder(
@@ -125,7 +185,7 @@ class LoginScreen extends StatelessWidget {
                 width: 320,
                 height: 40,
                 child: FloatingActionButton.extended(
-                  onPressed: googleLogin,
+                  onPressed: () => _signInWithGoogle(context),
                   backgroundColor: Colors.white,
                   foregroundColor: AppColors.googleButtonTextColor,
                   shape: RoundedRectangleBorder(
