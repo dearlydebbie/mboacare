@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'hospital.dart';
 import 'hospitaldetails.dart';
 import 'colors.dart';
+import 'profile.dart';
+import 'settings.dart';
 import 'navigation_drawer.dart';
 
 class Dashboard extends StatefulWidget {
@@ -36,7 +38,8 @@ class _DashboardState extends State<Dashboard> {
                   .toLowerCase()
                   .contains(_searchQuery.toLowerCase()) ||
               hospital.keywords.any(
-                  (keyword) => keyword.contains(_searchQuery.toLowerCase())))
+                (keyword) => keyword.contains(_searchQuery.toLowerCase()),
+              ))
           .toList();
     });
   }
@@ -102,12 +105,26 @@ class _DashboardState extends State<Dashboard> {
       );
 
   void _navigateToDetailsPage(Hospital hospital) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HospitalDetailsPage(hospital: hospital),
-      ),
-    );
+    if (hospital != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HospitalDetailsPage(hospital: hospital),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Selected hospital is null!")),
+      );
+    }
+  }
+
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
@@ -250,7 +267,8 @@ class _DashboardState extends State<Dashboard> {
                                     Expanded(
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 8.0),
+                                          horizontal: 8.0,
+                                        ),
                                         child: Text(
                                           hospital.name,
                                           style: TextStyle(
@@ -311,6 +329,51 @@ class _DashboardState extends State<Dashboard> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Color.fromRGBO(236, 253, 237, 1),
+        selectedItemColor: Color.fromRGBO(16, 101, 23, 1),
+        unselectedItemColor: Colors.black,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_hospital),
+            label: 'Hospital',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DashboardScreen extends StatefulWidget {
+  @override
+  _DashboardScreenState createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(maxWidth: 600),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Add other widgets or components for the Dashboard screen here
+        ],
       ),
     );
   }
