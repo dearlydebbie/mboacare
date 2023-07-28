@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'hospital.dart';
 import 'hospitaldetails.dart';
-import 'signUpPage.dart';
 import 'colors.dart';
 
 class Dashboard extends StatefulWidget {

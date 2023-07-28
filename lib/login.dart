@@ -15,59 +15,17 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
-  String _email = '';
-  String _password = '';
+  bool _isLoggedIn = false; // Flag to indicate if the user is logged in
 
   @override
   void initState() {
     super.initState();
-    _checkSignInStatus();
+    _checkUserStatus();
   }
 
-  Future<void> _signInWithEmail(BuildContext context) async {
-    try {
-      final UserCredential userCredential =
-          await _auth.signInWithEmailAndPassword(
-        email: _email,
-        password: _password,
-      );
-      final User? user = userCredential.user;
-
-      if (user != null) {
-        _saveSignInStatus(
-            user.email); // Save sign-in status to SharedPreferences
-        // If the user is verified and successfully signed in, navigate to the dashboard
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  Dashboard(userName: user.displayName ?? "")),
-        );
-      }
-    } catch (error) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('An error occurred during sign in: $error'),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  Future<void> _signInWithGoogle(BuildContext context) async {
+  Future<void> _signIn(BuildContext context) async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
@@ -86,14 +44,16 @@ class _LoginScreenState extends State<LoginScreen> {
       final User? user = userCredential.user;
 
       if (user != null) {
-        _saveSignInStatus(
-            user.email); // Save sign-in status to SharedPreferences
-        // If the user is successfully signed in with Google, navigate to the dashboard
+        _isLoggedIn =
+            true; // Set the flag to indicate that the user is logged in
+        // Clear the saved sign-in status as we are using Google sign-in
+        _saveSignInStatus(false);
+        // Navigate to the dashboard
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (context) =>
-                  Dashboard(userName: user.displayName ?? "")),
+            builder: (context) => Dashboard(userName: user.displayName ?? ""),
+          ),
         );
       }
     } catch (error) {
@@ -102,27 +62,52 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // Method to save sign-in status to SharedPreferences
-  Future<void> _saveSignInStatus(String? email) async {
+  Future<void> _saveSignInStatus(bool isSignedIn) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool('isSignedIn', true);
-    prefs.setString(
-        'email', email ?? ""); // If email is null, set an empty string
+    prefs.setBool('isSignedIn', isSignedIn);
   }
 
-  Future<void> _checkSignInStatus() async {
+  Future<void> _checkUserStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isSignedIn = prefs.getBool('isSignedIn') ?? false;
 
-    if (isSignedIn) {
-      String? email = prefs.getString('email');
-      // Navigate to the dashboard if the user is already signed in
+    setState(() {
+      _isLoggedIn = isSignedIn;
+    });
+  }
+
+  void _redirectToDashboard(BuildContext context) {
+    // If the user is logged in, navigate to the dashboard
+    if (_isLoggedIn) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => Dashboard(userName: email ?? ""),
+          builder: (context) => Dashboard(
+              userName:
+                  "John Doe"), // Replace "John Doe" with the actual user name
         ),
       );
     }
+  }
+
+  void _showErrorMessage(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -164,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 320,
                 height: 40,
                 child: ElevatedButton(
-                  onPressed: () => _signInWithEmail(context),
+                  onPressed: () => _signIn(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.buttonColor,
                     shape: RoundedRectangleBorder(
@@ -172,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   child: Text(
-                    'Sign in',
+                    'Sign In',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -184,19 +169,26 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 width: 320,
                 height: 40,
-                child: FloatingActionButton.extended(
-                  onPressed: () => _signInWithGoogle(context),
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.googleButtonTextColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                child: ElevatedButton.icon(
+                  onPressed: () => _signIn(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    primary: AppColors.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   icon: Image.asset(
                     'lib/assests/images/google-icon.png',
                     height: 32,
                     width: 32,
                   ),
-                  label: Text('Sign in with Google'),
+                  label: Text(
+                    'Sign in with Google',
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
                 ),
               ),
               SizedBox(height: 16),
