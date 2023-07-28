@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'hospital.dart';
 import 'hospitaldetails.dart';
 import 'colors.dart';
+import 'navigation_drawer.dart';
 
 class Dashboard extends StatefulWidget {
-  final String? userName; // New parameter to accept the user's name
+  final String? userName;
 
-  Dashboard({this.userName}); // Updated constructor
+  Dashboard({this.userName});
 
   @override
   _DashboardState createState() => _DashboardState();
@@ -15,13 +16,11 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   String _searchQuery = "";
   String _selectedFilter = "View All";
-
   List<Hospital> filteredHospitals = [];
 
   @override
   void initState() {
     super.initState();
-    // Initialize filteredHospitals with all hospitals when the widget is first built
     filteredHospitals = hospitals;
   }
 
@@ -42,12 +41,82 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
+  Widget _buildFilterText(String filter) => GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedFilter = filter;
+            _filterHospitals();
+          });
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Text(
+            filter,
+            style: TextStyle(
+              color: _selectedFilter == filter ? Colors.green : Colors.black,
+              fontWeight: _selectedFilter == filter
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+            ),
+          ),
+        ),
+      );
+
+  Widget _buildFeatureBox(String text, Color color) => Container(
+        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.buttonColor),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: AppColors.buttonColor,
+          ),
+        ),
+      );
+
+  Widget _buildArrowButton(Hospital hospital) => Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _navigateToDetailsPage(hospital),
+          splashColor: Colors.green.withOpacity(0.5),
+          highlightColor: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.buttonColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Icon(
+                Icons.arrow_forward,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+      );
+
+  void _navigateToDetailsPage(Hospital hospital) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HospitalDetailsPage(hospital: hospital),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Hospital Dashboard'),
       ),
+      drawer: MboacareNavigationDrawer(userName: widget.userName),
       body: Container(
         constraints: BoxConstraints(maxWidth: 600),
         child: Column(
@@ -128,12 +197,15 @@ class _DashboardState extends State<Dashboard> {
                     "Surgery",
                     "Cardiology",
                     "Brain",
-                  ].map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value, style: TextStyle(color: Colors.green)),
-                    );
-                  }).toList(),
+                  ].map<DropdownMenuItem<String>>(
+                    (String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child:
+                            Text(value, style: TextStyle(color: Colors.green)),
+                      );
+                    },
+                  ).toList(),
                 ),
               ),
             ),
@@ -146,9 +218,7 @@ class _DashboardState extends State<Dashboard> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: GestureDetector(
-                        onTap: () {
-                          _navigateToDetailsPage(hospital);
-                        },
+                        onTap: () => _navigateToDetailsPage(hospital),
                         child: Card(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16.0),
@@ -157,7 +227,6 @@ class _DashboardState extends State<Dashboard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Hospital Image
                               Container(
                                 height: 140,
                                 decoration: BoxDecoration(
@@ -172,7 +241,6 @@ class _DashboardState extends State<Dashboard> {
                                 ),
                               ),
                               SizedBox(height: 12),
-                              // Hospital Name with arrow button
                               Container(
                                 height: 30,
                                 child: Row(
@@ -202,7 +270,6 @@ class _DashboardState extends State<Dashboard> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Specialty
                                     Text(
                                       hospital.specialty,
                                       style: TextStyle(
@@ -211,7 +278,6 @@ class _DashboardState extends State<Dashboard> {
                                       ),
                                     ),
                                     SizedBox(height: 8),
-                                    // Feature Boxes
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -245,82 +311,6 @@ class _DashboardState extends State<Dashboard> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFilterText(String filter) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedFilter = filter;
-          _filterHospitals();
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Text(
-          filter,
-          style: TextStyle(
-            color: _selectedFilter == filter ? Colors.green : Colors.black,
-            fontWeight:
-                _selectedFilter == filter ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureBox(String text, Color color) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.buttonColor),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: AppColors.buttonColor,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildArrowButton(Hospital hospital) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          _navigateToDetailsPage(hospital);
-        },
-        splashColor: Colors.green.withOpacity(0.5),
-        highlightColor: Colors.transparent,
-        child: Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.buttonColor,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Icon(
-              Icons.arrow_forward,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _navigateToDetailsPage(Hospital hospital) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HospitalDetailsPage(hospital: hospital),
       ),
     );
   }
