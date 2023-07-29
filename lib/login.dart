@@ -19,6 +19,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoggedIn = false; // Flag to indicate if the user is logged in
 
+  TextEditingController _nameController =
+      TextEditingController(); // Name controller
+
   @override
   void initState() {
     super.initState();
@@ -44,15 +47,18 @@ class _LoginScreenState extends State<LoginScreen> {
       final User? user = userCredential.user;
 
       if (user != null) {
-        _isLoggedIn =
-            true; // Set the flag to indicate that the user is logged in
-        // Clear the saved sign-in status as we are using Google sign-in
-        _saveSignInStatus(false);
-        // Navigate to the dashboard
+        _isLoggedIn = true;
+        String displayName = _nameController.text.isNotEmpty
+            ? _nameController.text
+            : user.displayName ?? "Guest";
+
+        // Save the user name to SharedPreferences
+        _saveUserName(displayName);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Dashboard(userName: user.displayName ?? ""),
+            builder: (context) => Dashboard(userName: displayName),
           ),
         );
       }
@@ -65,6 +71,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _saveSignInStatus(bool isSignedIn) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool('isSignedIn', isSignedIn);
+  }
+
+  // Method to save the user name to SharedPreferences
+  Future<void> _saveUserName(String userName) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('userName', userName);
   }
 
   Future<void> _checkUserStatus() async {
@@ -83,8 +95,8 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => Dashboard(
-              userName:
-                  "John Doe"), // Replace "John Doe" with the actual user name
+            userName: "Guest",
+          ), // Replace "Guest" with the actual user name
         ),
       );
     }
@@ -144,8 +156,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: AppColors.signInButtonColor,
                 ),
               ),
-              SizedBox(height: 80),
-              Container(
+              SizedBox(height: 40),
+              // Name Box
+              SizedBox(
+                width: 320,
+                height: 40,
+                child: TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    labelStyle: TextStyle(color: AppColors.primaryColor),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.primaryColor),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              // Sign In Button
+              SizedBox(
                 width: 320,
                 height: 40,
                 child: ElevatedButton(

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'colors.dart';
 import 'dashboard.dart';
-import "package:shared_preferences/shared_preferences.dart"; // Import the shared_preferences package
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key});
@@ -14,6 +14,8 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  TextEditingController _nameController =
+      TextEditingController(); // New controller for Name
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   String _registrationStatus = '';
@@ -28,24 +30,20 @@ class _SignUpPageState extends State<SignUpPage> {
       final User? user = userCredential.user;
 
       if (user != null) {
-        // Save the user's name to the Firebase user profile
-        await user.updateDisplayName(
-            "John Doe"); // Replace "John Doe" with the user's actual name
+        await user.updateDisplayName(_nameController.text.trim());
 
         setState(() {
           _registrationStatus = 'Registration successful';
         });
 
-        // Redirect to the dashboard
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (context) =>
-                  Dashboard(userName: user.displayName ?? "")),
+            builder: (context) => Dashboard(userName: user.displayName ?? ""),
+          ),
         );
       }
     } catch (e) {
-      // Registration failed
       setState(() {
         _registrationStatus = 'Registration failed: ${e.toString()}';
       });
@@ -53,7 +51,6 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> _signUpWithGoogle() async {
-    print("googleLogin method Called");
     GoogleSignIn _googleSignIn = GoogleSignIn();
     try {
       var result = await _googleSignIn.signIn();
@@ -63,7 +60,9 @@ class _SignUpPageState extends State<SignUpPage> {
 
       final userData = await result.authentication;
       final credential = GoogleAuthProvider.credential(
-          accessToken: userData.accessToken, idToken: userData.idToken);
+        accessToken: userData.accessToken,
+        idToken: userData.idToken,
+      );
       var finalResult =
           await FirebaseAuth.instance.signInWithCredential(credential);
       final User? user = finalResult.user;
@@ -73,17 +72,15 @@ class _SignUpPageState extends State<SignUpPage> {
           _registrationStatus = 'Google sign-in successful';
         });
 
-        // Save the sign-in status and email in SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setBool('isSignedIn', true);
         prefs.setString('email', user.email ?? "");
 
-        // Redirect to the dashboard
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (context) =>
-                  Dashboard(userName: user.displayName ?? "")),
+            builder: (context) => Dashboard(userName: user.displayName ?? ""),
+          ),
         );
       }
     } catch (error) {
@@ -109,6 +106,29 @@ class _SignUpPageState extends State<SignUpPage> {
                   width: 125,
                 ),
                 SizedBox(height: 50),
+                Container(
+                  width: 320,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 1.0,
+                      color: AppColors.email,
+                    ),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 8.0,
+                        horizontal: 10.0,
+                      ),
+                      labelText: 'Name',
+                      labelStyle: TextStyle(color: AppColors.primaryColor),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
                 Container(
                   width: 320,
                   decoration: BoxDecoration(
