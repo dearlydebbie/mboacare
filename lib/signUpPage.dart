@@ -39,7 +39,9 @@ class _SignUpPageState extends State<SignUpPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Dashboard(userName: user.displayName ?? ""),
+            builder: (context) => DashboardScreen(
+              userName: '',
+            ),
           ),
         );
       }
@@ -79,7 +81,9 @@ class _SignUpPageState extends State<SignUpPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Dashboard(userName: user.displayName ?? ""),
+            builder: (context) => DashboardScreen(
+              userName: '',
+            ),
           ),
         );
       }

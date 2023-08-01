@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class DetailsPage extends StatelessWidget {
+class HospitalDashbordPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text('This is the Hospital Details Page'),
+        child: Text('This is the Hospital Dashbord Page'),
       ),
     );
   }

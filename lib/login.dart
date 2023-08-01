@@ -58,7 +58,9 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Dashboard(userName: displayName),
+            builder: (context) => DashboardScreen(
+              userName: displayName,
+            ),
           ),
         );
       }
@@ -94,8 +96,8 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => Dashboard(
-            userName: "Guest",
+          builder: (context) => DashboardScreen(
+            userName: '',
           ), // Replace "Guest" with the actual user name
         ),
       );
