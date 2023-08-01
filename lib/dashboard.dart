@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mboacare/register.dart';
 import 'colors.dart';
-import 'hospitaldashbord.dart';
+import 'hospitaldashboard.dart';
 import 'settings.dart';
 import 'profile.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,7 +20,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   final List<Widget> _screens = [
     DashboardContent(),
-    HospitalDashbordPage(),
+    HospitalDashbord(),
     SettingsPage(),
     ProfilePage(
       userName: 'Hi, Guest',
